@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PPL Campaign Studio — AI Quick Start (Prototype)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Ari's Figma tokens */
+    --navy:#002856;        /* Gartner blue (headings) */
+    --navy2:#002B5C;       /* G2DM blue B160 */
+    --link:#0052D6;        /* Link blue */
+    --link1:#E6EEFB;       /* Link blue/1 tint */
+    --link2:#CCDCF7;       /* Link blue/2 tint */
+    --bg3:#B2BECC;         /* Gartner blue/3 */
+    --bg6:#667E9A;         /* Gartner blue/6 */
+    --bg8:#335378;         /* Gartner blue/8 */
+    --rorange:#FF492C;     /* G2DM accent */
+    --black:#0F0F0F; --placeholder:#6F7878; --border:#C4C4C4; --white:#FFFFFF;
+    --page:#F4F6F9; --green:#1E7B4F; --green-bg:#E7F4EC; --gold:#C98A00; --gold-bg:#FCF1D6;
+    --site:#0052D6; --press:#7A3FB5; --web:#0E8C8C; --data:#FF492C;
+    --shadow:0 4px 6px -1px rgba(0,0,0,.10), 0 2px 4px -2px rgba(0,0,0,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Figtree",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--page);color:var(--black);line-height:1.4;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px 80px}
+  /* top bar */
+  .topbar{background:var(--navy);color:#fff;padding:12px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:30}
+  .topbar .logo{font-weight:800;letter-spacing:.5px;background:#fff;color:var(--navy);border-radius:6px;padding:3px 8px;font-size:14px}
+  .topbar .crumb{font-size:14px;opacity:.9}
+  /* mode toggle */
+  .modewrap{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .modelabel{font-size:11px;opacity:.7;letter-spacing:.3px}
+  .seg{display:flex;background:rgba(255,255,255,.13);border-radius:9px;padding:3px}
+  .seg button{border:none;background:none;color:#fff;font-family:inherit;font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:7px;cursor:pointer;opacity:.7}
+  .seg button.on{background:#fff;color:var(--navy);opacity:1}
+  /* stages */
+  .stage{display:none}.stage.active{display:block;animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  /* audience-conditional visibility */
+  body[data-mode="vendor"] .internal-only{display:none !important}
+  body[data-mode="internal"] .vendor-only{display:none !important}
+  /* hero */
+  .hero{text-align:center;padding:54px 0 22px}
+  .hero h1{font-size:34px;color:var(--navy);font-weight:800;letter-spacing:-.4px}
+  .hero p{color:var(--bg6);font-size:17px;max-width:640px;margin:14px auto 0}
+  .scanner{background:#fff;border:1px solid var(--border);border-radius:14px;max-width:680px;margin:32px auto 0;padding:26px;box-shadow:var(--shadow)}
+  .scanner label{font-weight:700;color:var(--navy);font-size:14px;display:block;margin-bottom:10px}
+  .url-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .url-row .ic{width:32px;height:32px;border-radius:8px;background:var(--link1);color:var(--link);display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto}
+  .url-row input{flex:1;border:1px solid var(--border);border-radius:9px;padding:11px 13px;font-size:15px;color:var(--black);font-family:inherit}
+  .url-row input::placeholder{color:var(--placeholder)}
+  .url-row input:focus{outline:none;border-color:var(--link);box-shadow:0 0 0 3px rgba(0,82,214,.15)}
+  .url-row .tag{font-size:11px;color:var(--placeholder);flex:0 0 auto;width:92px;text-align:right}
+  .addbtn{background:none;border:1px dashed var(--border);color:var(--link);border-radius:9px;padding:9px 12px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:4px;font-family:inherit}
+  .addbtn:hover{background:var(--link1)}
+  .sources-note{font-size:12.5px;color:var(--bg6);margin-top:14px;display:flex;gap:7px;align-items:flex-start}
+  .scanbtn{margin-top:20px;width:100%;background:var(--link);color:#fff;border:none;border-radius:10px;padding:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s}
+  .scanbtn:hover{background:#0042ad}
+  .painrow{display:flex;gap:14px;max-width:780px;margin:32px auto 0;flex-wrap:wrap;justify-content:center}
+  .pain{flex:1;min-width:215px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px}
+  .pain .x{color:var(--rorange);font-weight:800;font-size:12px;letter-spacing:.3px}
+  .pain .ok{color:var(--green);font-weight:800;font-size:12px;letter-spacing:.3px}
+  .pain p{font-size:13px;color:var(--bg6);margin-top:6px}
+  .disc{max-width:680px;margin:24px auto 0;font-size:11.5px;color:var(--placeholder);text-align:center;font-style:italic}
+  /* scanning */
+  .scanning{max-width:640px;margin:76px auto;text-align:center}
+  .scanning h2{color:var(--navy);font-size:24px;font-weight:800}
+  .scanning .sub{color:var(--bg6);margin-top:8px}
+  .bar{height:8px;background:var(--link1);border-radius:6px;overflow:hidden;margin:30px 0}
+  .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--link),#4a86ec);transition:width .5s ease}
+  .steps{text-align:left;max-width:470px;margin:0 auto}
+  .step{display:flex;align-items:center;gap:12px;padding:9px 0;color:var(--bg6);font-size:15px;opacity:.45;transition:opacity .3s}
+  .step.on{opacity:1;color:var(--black)}
+  .step .dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:12px}
+  .step.done .dot{background:var(--green);border-color:var(--green);color:#fff}
+  .step.active .dot{border-color:var(--link);border-top-color:transparent;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  /* results */
+  .results{padding-top:26px}
+  .secttitle{font-size:12.5px;font-weight:800;letter-spacing:.7px;color:var(--bg6);text-transform:uppercase;margin:30px 0 12px}
+  .vendorcard{background:#fff;border:1px solid var(--border);border-radius:14px;padding:22px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;box-shadow:var(--shadow)}
+  .vlogo{width:54px;height:54px;border-radius:12px;background:linear-gradient(135deg,var(--link),var(--navy));color:#fff;font-weight:800;font-size:22px;display:flex;align-items:center;justify-content:center}
+  .vendorcard h2{color:var(--navy);font-size:22px}
+  .vendorcard .cls{color:var(--bg6);font-size:14px;margin-top:3px}
+  .conf{margin-left:auto;text-align:right}
+  .conf .big{font-size:26px;font-weight:800;color:var(--green)}
+  .conf .lbl{font-size:11px;color:var(--placeholder);text-transform:uppercase;letter-spacing:.4px}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+  .chip{font-size:11.5px;padding:4px 10px;border-radius:20px;background:var(--link1);color:var(--navy2);font-weight:600;display:inline-flex;align-items:center;gap:5px}
+  .chip .src{font-size:9px;text-transform:uppercase;letter-spacing:.3px;opacity:.75}
+  .prov{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:2px 6px;border-radius:4px;color:#fff;white-space:nowrap}
+  .p-site{background:var(--site)}.p-press{background:var(--press)}.p-web{background:var(--web)}.p-data{background:var(--data)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--bg6);margin-top:10px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .findgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:720px){.findgrid{grid-template-columns:1fr}}
+  .find{background:#fff;border:1px solid var(--border);border-radius:12px;padding:15px}
+  .find .h{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--navy);font-size:14px;margin-bottom:8px}
+  .find ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+  .find li{font-size:13.5px;color:var(--black);display:flex;gap:8px;align-items:flex-start;line-height:1.45}
+  .find li .prov{margin-top:1px;flex:0 0 auto}
+  .synergy{background:var(--navy);color:#fff;border-radius:14px;padding:22px}
+  .synergy h3{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
+  .synergy p{font-size:13.5px;opacity:.92;margin-top:8px;max-width:780px}
+  .syn-stats{display:flex;gap:26px;flex-wrap:wrap;margin-top:16px}
+  .syn-stats div .n{font-size:22px;font-weight:800}
+  .syn-stats div .l{font-size:11px;opacity:.75;text-transform:uppercase;letter-spacing:.4px}
+  /* strategy cards */
+  .scale{display:flex;align-items:center;justify-content:center;gap:10px;color:var(--bg6);font-size:12px;margin:4px 0 16px}
+  .scale .line{height:4px;flex:1;max-width:130px;background:linear-gradient(90deg,var(--link2),var(--link));border-radius:3px}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+  @media(max-width:820px){.cards{grid-template-columns:1fr}}
+  .card{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:18px 18px 16px;position:relative;transition:opacity .2s,transform .2s,box-shadow .2s;opacity:.6}
+  .card:hover{opacity:1;transform:translateY(-2px);box-shadow:var(--shadow)}
+  .card.best{opacity:1;border-color:var(--link);box-shadow:0 6px 18px rgba(0,82,214,.14)}
+  .card.max{border-top:4px solid var(--rorange)}
+  .card .badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:800;padding:4px 12px;border-radius:20px;white-space:nowrap}
+  .badge.rec{background:var(--link);color:#fff}
+  .badge.most{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold)}
+  .radio{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);display:inline-block;vertical-align:-2px;margin-right:7px}
+  .card.best .radio{border-color:var(--link);background:radial-gradient(circle,var(--link) 0 5px,#fff 6px)}
+  .card h4{color:var(--navy);font-size:18px;font-weight:800;display:inline-block}
+  .card .tagline{font-size:12.5px;color:var(--bg6);min-height:32px;margin-top:6px}
+  .estchip{display:inline-block;font-size:11px;font-weight:700;color:var(--link);background:var(--link1);border-radius:6px;padding:3px 8px;margin-top:8px}
+  .card .leads{font-size:30px;font-weight:800;color:var(--navy);margin-top:10px}
+  .card .leads span{font-size:13px;color:var(--bg6);font-weight:600}
+  .card .money{font-size:13px;color:var(--bg6);margin-top:2px}
+  .subline{font-size:11.5px;color:var(--placeholder);margin-top:8px;font-style:italic}
+  .crit{list-style:none;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:9px}
+  .crit li{font-size:12.5px;display:flex;gap:8px;align-items:flex-start}
+  .crit .k{color:var(--bg6);flex:0 0 84px}
+  .crit .v{color:var(--black);font-weight:600}
+  .crit .open{color:var(--green);font-weight:700}
+  .pickbtn{margin-top:14px;width:100%;border:none;border-radius:9px;padding:10px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit}
+  .card.best .pickbtn{background:var(--link);color:#fff}
+  .card:not(.best) .pickbtn{background:var(--link1);color:var(--navy2)}
+  .gaterow{background:var(--green-bg);border:1px solid #BfE6CB;border-radius:10px;padding:11px 14px;font-size:12.5px;color:#13632F;margin-top:14px;display:flex;gap:8px;align-items:flex-start}
+  .footer-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px;align-items:center}
+  .btn-primary{background:var(--link);color:#fff;border:none;border-radius:10px;padding:13px 22px;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit}
+  .btn-ghost{background:none;border:1px solid var(--border);color:var(--navy);border-radius:10px;padding:13px 22px;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit}
+  .guard{font-size:12.5px;color:var(--bg6);font-style:italic;margin-top:18px;max-width:780px;border-left:3px solid var(--rorange);padding:6px 0 6px 14px}
+  .restart{margin-left:auto;font-size:13px;color:var(--link);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:inherit}
+  /* slim detected summary */
+  .matchnote{font-size:13.5px;color:var(--bg6);max-width:800px;margin-top:6px}
+  .detfolder{margin-top:14px;border:1px solid var(--border);border-radius:10px;background:#fff;max-width:880px}
+  .detfolder summary{cursor:pointer;font-weight:700;color:var(--navy);font-size:13.5px;padding:13px 16px;list-style:none}
+  .detfolder summary::-webkit-details-marker{display:none}
+  .detfolder summary:before{content:"\25B8   ";color:var(--link)}
+  .detfolder[open] summary:before{content:"\25BE   "}
+  .detbody{padding:0 16px 14px}
+  .detlist{list-style:none;display:flex;flex-direction:column;gap:9px}
+  .detlist li{font-size:13px;color:var(--black);display:flex;gap:8px;align-items:flex-start;line-height:1.45}
+  .detlist li .prov{margin-top:1px;flex:0 0 auto}
+  /* checkout */
+  .estbar{background:var(--link1);border:1px solid var(--link2);border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:26px;flex-wrap:wrap;margin-bottom:18px}
+  .estbar .est-h{font-weight:800;color:var(--navy);font-size:14px;display:flex;align-items:center;gap:8px;margin-right:auto}
+  .estbar .est{text-align:center}
+  .estbar .est .n{font-weight:800;color:var(--navy);font-size:18px}
+  .estbar .est .l{font-size:10.5px;color:var(--bg6);text-transform:uppercase;letter-spacing:.3px}
+  .cosum{background:#fff;border:1px solid var(--border);border-radius:14px;padding:22px;box-shadow:var(--shadow);max-width:700px}
+  .cosum h3{color:var(--navy);font-size:18px;font-weight:800;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .cosum .selpill{font-size:11px;font-weight:800;background:var(--link);color:#fff;border-radius:20px;padding:3px 11px}
+  .cosum .meta{color:var(--bg6);font-size:13px;margin-top:6px}
+  .cogrid{list-style:none;margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  @media(max-width:600px){.cogrid{grid-template-columns:1fr}}
+  .cogrid li{font-size:13px;display:flex;gap:8px}
+  .cogrid .k{color:var(--bg6);flex:0 0 92px}
+  .cogrid .v{color:var(--black);font-weight:600}
+  .cogrid .open{color:var(--green);font-weight:700}
+  .paybox{max-width:700px;margin-top:16px;background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px}
+  .paybox h4{color:var(--navy);font-size:14px;font-weight:800;margin-bottom:12px}
+  .payopt{display:flex;gap:11px;align-items:flex-start;border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:10px;cursor:pointer}
+  .payopt.sel{border-color:var(--link);background:var(--link1)}
+  .payopt .rdo{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);flex:0 0 auto;margin-top:2px}
+  .payopt.sel .rdo{border-color:var(--link);background:radial-gradient(circle,var(--link) 0 5px,#fff 6px)}
+  .payopt .t{font-weight:700;color:var(--navy);font-size:13.5px}
+  .payopt .d{font-size:12px;color:var(--bg6);margin-top:2px}
+  .cobtns{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;align-items:center}
+  .backlink{font-size:13px;color:var(--link);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:inherit}
+</style>
+</head>
+<body data-mode="internal">
+<div class="topbar">
+  <span class="logo">G2DM</span>
+  <span class="crumb">PPL Campaign Studio · <strong>AI Quick Start</strong></span>
+  <div class="modewrap">
+    <span class="modelabel">VIEW</span>
+    <div class="seg">
+      <button id="mInternal" class="on" onclick="setMode('internal')">Internal (AM)</button>
+      <button id="mVendor" onclick="setMode('vendor')">Vendor self-service</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- STEP 1 -->
+  <section class="stage active" id="s1">
+    <div class="hero">
+      <h1 class="internal-only">Launch a PPL campaign in minutes, not a month.</h1>
+      <h1 class="vendor-only">Get your PPL campaign set up in minutes.</h1>
+      <p class="internal-only">Drop in a vendor's website and any extra sources. Our AI reads their site, recent press, and verified mentions — then cross-references G2DM's own market data to generate three ready-to-go target strategies. No spreadsheets. No manual filter entry.</p>
+      <p class="vendor-only">Just add your website. We'll read your site and recent news — and combine it with G2DM's own performance data from across your market — to recommend three ready-to-go PPL targeting options for reaching the right buyers. No guesswork, no forms to fill out.</p>
+    </div>
+
+    <div class="scanner">
+      <label class="internal-only">Vendor sources to scan</label>
+      <label class="vendor-only">Your website &amp; sources</label>
+      <div id="urlList">
+        <div class="url-row">
+          <div class="ic">🌐</div>
+          <input type="text" value="tempohr.com" />
+          <span class="tag">Primary site</span>
+        </div>
+        <div class="url-row">
+          <div class="ic">📄</div>
+          <input type="text" value="tempohr.com/product/payroll" />
+          <span class="tag">Product page</span>
+        </div>
+        <div class="url-row">
+          <div class="ic">📰</div>
+          <input type="text" value="tempohr.com/newsroom" />
+          <span class="tag">Press / news</span>
+        </div>
+      </div>
+      <button class="addbtn" onclick="addUrl()">+ Add another source (LinkedIn, G2 profile, case study…)</button>
+      <div class="sources-note">
+        <span>🔎</span>
+        <span class="internal-only">We also automatically search the open web for <strong>verified, vendor-official mentions</strong> — press releases, funding news, and product announcements — even when they don't live on the vendor's own domain.</span>
+        <span class="vendor-only">We'll also pull in your <strong>recent public announcements</strong> — press, funding, new features — to make your targeting as accurate as possible.</span>
+      </div>
+      <button class="scanbtn" onclick="startScan()">Scan &amp; generate target strategies →</button>
+    </div>
+
+    <div class="painrow internal-only">
+      <div class="pain"><span class="x">Today ✕</span><p>Reps juggle the Targeting Checklist spreadsheet, the Power BI Simulator, and SA Admin — re-entering every filter by hand.</p></div>
+      <div class="pain"><span class="x">Today ✕</span><p>"Finding market fit is high-effort and demanding even to the most experienced AEs." — PPL UXR Study</p></div>
+      <div class="pain"><span class="x">Today ✕</span><p>Setup stretches campaigns out so long that vendors disengage before launch.</p></div>
+    </div>
+    <div class="painrow vendor-only">
+      <div class="pain"><span class="ok">✓ With Quick Start</span><p>No filters to learn. Your targeting is pre-built from your own site and our market data.</p></div>
+      <div class="pain"><span class="ok">✓ With Quick Start</span><p>See estimated leads, cost, and spend for each option before you commit.</p></div>
+      <div class="pain"><span class="ok">✓ With Quick Start</span><p>Save a draft and your G2DM rep can review it with you — you're never on your own.</p></div>
+    </div>
+    <p class="disc">Demo uses a fictional vendor ("Tempo HR") and illustrative numbers. Not live data.</p>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="stage" id="s2">
+    <div class="scanning">
+      <h2>Reading the signal…</h2>
+      <p class="sub">Scanning sources and matching them against G2DM market data.</p>
+      <div class="bar"><i id="barFill"></i></div>
+      <div class="steps" id="stepList">
+        <div class="step"><span class="dot"></span>Crawling website &amp; product pages</div>
+        <div class="step"><span class="dot"></span>Reading recent press, funding &amp; product news</div>
+        <div class="step"><span class="dot"></span>Searching verified external mentions across the web</div>
+        <div class="step"><span class="dot"></span>Auto-classifying market &amp; applications</div>
+        <div class="step"><span class="dot"></span>Cross-referencing G2DM lead volume &amp; qualification rules</div>
+        <div class="step"><span class="dot"></span>Building Limited / Best value / Maximum reach strategies</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="stage results" id="s3">
+
+    <div class="secttitle">What we found</div>
+    <div class="vendorcard">
+      <div class="vlogo">T</div>
+      <div>
+        <h2>Tempo HR</h2>
+        <div class="cls">Classified as <strong>Human Resources</strong> → HRIS + Payroll suite · mid-market focus</div>
+      </div>
+      <div class="conf"><div class="big">96%</div><div class="lbl">Market match confidence</div><div style="font-size:10.5px;color:var(--placeholder);max-width:170px;margin-top:3px;margin-left:auto">How confident we are this is the right market category</div></div>
+      <div style="flex-basis:100%">
+        <div class="chips">
+          <span class="chip"><span class="src">scanned</span> Website · 3 pages</span>
+          <span class="chip"><span class="src">scanned</span> Newsroom</span>
+          <span class="chip"><span class="src">found</span> Series B press release</span>
+          <span class="chip internal-only"><span class="src">found</span> G2 profile · 412 reviews</span>
+          <span class="chip"><span class="src">found</span> LinkedIn (1,200 employees)</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="matchnote internal-only">We read the site, newsroom, and recent press, then matched it against G2DM market data to build the three strategies below.</p>
+    <p class="matchnote vendor-only">We read your site and recent news, then matched it against G2DM market data to tune the options below.</p>
+
+    <details class="detfolder">
+      <summary class="internal-only">What we detected &amp; why these targets</summary>
+      <summary class="vendor-only">What we picked up from your site</summary>
+      <div class="detbody">
+        <ul class="detlist internal-only">
+          <li><span class="prov p-site">Site</span> Apps: Core HR, Payroll, Benefits, Time &amp; Attendance, Onboarding (cloud/SaaS)</li>
+          <li><span class="prov p-press">Press</span> New AI-assisted onboarding module · Series B · expanding into Canada</li>
+          <li><span class="prov p-web">Web</span> Verticals: Tech, Professional Services, Healthcare, Retail · SOC 2 + HIPAA</li>
+          <li><span class="prov p-data">G2DM</span> Strongest HR volume in 250–999 user bands · "defer to vendor" pricing (+12pt lift) · 2 competitors already receiving these leads</li>
+        </ul>
+        <ul class="detlist vendor-only">
+          <li><span class="prov p-site">Site</span> Your products: Core HR, Payroll, Benefits, Time &amp; Attendance, Onboarding</li>
+          <li><span class="prov p-press">Press</span> Your new AI-assisted onboarding module · Series B · Canada expansion</li>
+          <li><span class="prov p-web">Web</span> Verticals you focus on: Tech, Professional Services, Healthcare, Retail</li>
+        </ul>
+      </div>
+    </details>
+
+    <div class="secttitle internal-only">3 strategies, ready to drop into the Strategy Grid</div>
+    <div class="secttitle vendor-only">Choose your starting strategy</div>
+    <div class="scale"><span>fewer leads</span><span class="line"></span><span>more leads</span></div>
+
+    <div class="cards">
+      <!-- Limited -->
+      <div class="card limited">
+        <h4><span class="radio"></span>Limited reach</h4>
+        <div class="tagline">Tightest fit — your core proven segment only.</div>
+        <div class="leads">~14 <span>leads / mo</span></div>
+        <div class="money">~$300 / lead · ~$4,200 / mo</div>
+        <div class="subline">≈ 17 fewer leads/mo than Best value</div>
+        <ul class="crit">
+          <li><span class="k">Size (gated)</span><span class="v">250–999 users</span></li>
+          <li><span class="k">Industries</span><span class="v">Tech, Prof. Services</span></li>
+          <li><span class="k">Applications</span><span class="v">Core HR + Payroll</span></li>
+          <li><span class="k">Countries</span><span class="v">US</span></li>
+          <li><span class="k">Employees</span><span class="v open">Open — all bands</span></li>
+          <li><span class="k">Revenue</span><span class="v open">Open — all bands</span></li>
+        </ul>
+        <button class="pickbtn" onclick="goCheckout('Limited reach')">Use this</button>
+      </div>
+      <!-- Best -->
+      <div class="card best">
+        <div class="badge rec">✓ Recommended</div>
+        <h4><span class="radio"></span>Best value</h4>
+        <div class="tagline">Best balance of volume and cost efficiency — the generous default.</div>
+        <span class="estchip">Best volume + cost efficiency</span>
+        <div class="leads">~31 <span>leads / mo</span></div>
+        <div class="money">~$285 / lead · ~$8,800 / mo</div>
+        <div class="subline">&nbsp;</div>
+        <ul class="crit">
+          <li><span class="k">Size (gated)</span><span class="v">100–4,999 users</span></li>
+          <li><span class="k">Industries</span><span class="v">Tech, Prof. Svcs, Healthcare, Retail</span></li>
+          <li><span class="k">Applications</span><span class="v">Core HR, Payroll, Benefits, Onboarding</span></li>
+          <li><span class="k">Countries</span><span class="v">US + Canada</span></li>
+          <li><span class="k">Employees</span><span class="v open">Open — all bands</span></li>
+          <li><span class="k">Revenue</span><span class="v open">Open — all bands</span></li>
+        </ul>
+        <button class="pickbtn" onclick="goCheckout('Best value')">Use this</button>
+      </div>
+      <!-- Max -->
+      <div class="card max">
+        <div class="badge most">★ Most leads</div>
+        <h4><span class="radio"></span>Maximum reach</h4>
+        <div class="tagline">The widest net for the most lead volume.</div>
+        <div class="leads">~52 <span>leads / mo</span></div>
+        <div class="money">~$295 / lead · ~$15,300 / mo</div>
+        <div class="subline internal-only">Where your top competitors compete</div>
+        <div class="subline vendor-only">The broadest reach in your market</div>
+        <ul class="crit">
+          <li><span class="k">Size (gated)</span><span class="v">50–9,999 users</span></li>
+          <li><span class="k">Industries</span><span class="v">All HR-relevant verticals</span></li>
+          <li><span class="k">Applications</span><span class="v">Full HR suite</span></li>
+          <li><span class="k">Countries</span><span class="v">US + Canada</span></li>
+          <li><span class="k">Employees</span><span class="v open">Open — all bands</span></li>
+          <li><span class="k">Revenue</span><span class="v open">Open — all bands</span></li>
+        </ul>
+        <button class="pickbtn" onclick="goCheckout('Maximum reach')">Use this</button>
+      </div>
+    </div>
+
+    <div class="gaterow">
+      <span>🛡️</span>
+      <span class="internal-only"><strong>Built to avoid Zero-Lead Targets.</strong> Each strategy tightens <em>one</em> size criterion (here: # users, the measure advisors actually qualify HR by) and leaves Employees and Revenue fully open — so a target never gets so narrow it can't match buyers.</span>
+      <span class="vendor-only"><strong>Tuned for healthy lead flow.</strong> Each option keeps your targeting broad enough to reach plenty of qualified buyers — so you never accidentally narrow yourself out of leads.</span>
+    </div>
+
+    <div class="footer-actions">
+      <button class="btn-primary internal-only" onclick="goCheckout('Best value')">Continue with Best value →</button>
+      <button class="btn-ghost internal-only" onclick="goCheckout('Best value')">Review &amp; checkout</button>
+      <button class="btn-primary vendor-only" onclick="goCheckout('Best value')">Continue with Best value →</button>
+      <button class="btn-ghost vendor-only" onclick="goCheckout('Best value')">Review &amp; checkout</button>
+      <button class="restart" onclick="reset()">↺ Scan another vendor</button>
+    </div>
+
+    <div class="guard internal-only">Built to enhance the rep, not replace them. The scanner does the manual drudgery — classification, filter entry, lead estimation — and produces a confident first draft. The AE still owns the strategy, the relationship, and final activation in the collaborative workspace.</div>
+    <div class="guard vendor-only">A head start, not a black box. These are smart starting points — your G2DM rep can review and fine-tune any option with you before anything goes live.</div>
+
+  </section>
+
+  <!-- STEP 4: CHECKOUT -->
+  <section class="stage" id="s4">
+    <div class="secttitle" style="margin-top:26px">Review &amp; launch</div>
+
+    <div class="estbar">
+      <span class="est-h">🧮 Lead Estimator</span>
+      <div class="est"><div class="n" id="coLeads">—</div><div class="l">Est. leads / mo</div></div>
+      <div class="est"><div class="n" id="coCpl">—</div><div class="l">Est. cost / lead</div></div>
+      <div class="est"><div class="n" id="coSpend">—</div><div class="l">Est. monthly spend</div></div>
+    </div>
+
+    <div class="cosum">
+      <h3><span>Tempo HR · Human Resources</span> <span class="selpill" id="coName">Best value</span></h3>
+      <div class="meta internal-only">Selected target strategy — every filter pre-filled. Edit anything before you launch.</div>
+      <div class="meta vendor-only">Your selected strategy — everything's pre-filled. You can tweak anything before launch.</div>
+      <ul class="cogrid">
+        <li><span class="k">Size (gated)</span><span class="v" id="coSize">—</span></li>
+        <li><span class="k">Industries</span><span class="v" id="coInd">—</span></li>
+        <li><span class="k">Applications</span><span class="v" id="coApp">—</span></li>
+        <li><span class="k">Countries</span><span class="v" id="coCty">—</span></li>
+        <li><span class="k">Employees</span><span class="v open">Open — all bands</span></li>
+        <li><span class="k">Revenue</span><span class="v open">Open — all bands</span></li>
+      </ul>
+    </div>
+
+    <div class="paybox">
+      <h4>How would you like to proceed?</h4>
+      <div class="payopt sel" onclick="selPay(this)">
+        <div class="rdo"></div>
+        <div>
+          <div class="t internal-only">Create the target now</div>
+          <div class="t vendor-only">Create &amp; pay now (credit card)</div>
+          <div class="d internal-only">Activate immediately — the standard flow for emerging accounts.</div>
+          <div class="d vendor-only">Add a card and go live right away.</div>
+        </div>
+      </div>
+      <div class="payopt" onclick="selPay(this)">
+        <div class="rdo"></div>
+        <div>
+          <div class="t">Save as a draft</div>
+          <div class="d internal-only">Build it now, share with the client, launch once the PO / contract is signed.</div>
+          <div class="d vendor-only">Save your setup and come back to launch when you're ready.</div>
+        </div>
+      </div>
+      <div class="payopt" onclick="selPay(this)">
+        <div class="rdo"></div>
+        <div>
+          <div class="t internal-only">Send to client for review</div>
+          <div class="t vendor-only">Send to my G2DM rep</div>
+          <div class="d internal-only">Share the draft in-portal for the client's POC to validate before launch.</div>
+          <div class="d vendor-only">Have your rep review and fine-tune it with you before anything goes live.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cobtns">
+      <button class="btn-primary">Confirm &amp; continue →</button>
+      <button class="backlink" onclick="show('s3')">← Back to strategies</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  function setMode(m){
+    document.body.dataset.mode=m;
+    document.getElementById('mInternal').classList.toggle('on',m==='internal');
+    document.getElementById('mVendor').classList.toggle('on',m==='vendor');
+  }
+  function addUrl(){
+    var list=document.getElementById('urlList');
+    var row=document.createElement('div');
+    row.className='url-row';
+    row.innerHTML='<div class="ic">🔗</div><input type="text" placeholder="Paste a URL (LinkedIn, G2 profile, case study, press…)" /><span class="tag">Extra source</span>';
+    list.appendChild(row);
+    row.querySelector('input').focus();
+  }
+  function show(id){
+    document.querySelectorAll('.stage').forEach(function(s){s.classList.remove('active')});
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function startScan(){
+    show('s2');
+    var steps=document.querySelectorAll('#stepList .step');
+    var fill=document.getElementById('barFill');
+    var i=0;
+    steps.forEach(function(s){s.classList.remove('on','active','done')});
+    fill.style.width='0';
+    function next(){
+      if(i>0){steps[i-1].classList.remove('active');steps[i-1].classList.add('done')}
+      if(i<steps.length){
+        steps[i].classList.add('on','active');
+        fill.style.width=Math.round(((i+1)/steps.length)*100)+'%';
+        i++;
+        setTimeout(next, i===1?700:900);
+      } else { setTimeout(function(){show('s3')},650); }
+    }
+    next();
+  }
+  function reset(){show('s1')}
+  var strat={
+    'Limited reach':{leads:'~14',cpl:'$300',spend:'$4,200',size:'250–999 users',ind:'Tech, Prof. Services',app:'Core HR + Payroll',cty:'US'},
+    'Best value':{leads:'~31',cpl:'$285',spend:'$8,800',size:'100–4,999 users',ind:'Tech, Prof. Svcs, Healthcare, Retail',app:'Core HR, Payroll, Benefits, Onboarding',cty:'US + Canada'},
+    'Maximum reach':{leads:'~52',cpl:'$295',spend:'$15,300',size:'50–9,999 users',ind:'All HR-relevant verticals',app:'Full HR suite',cty:'US + Canada'}
+  };
+  function goCheckout(name){
+    var s=strat[name]; if(!s) return;
+    document.getElementById('coName').textContent=name;
+    document.getElementById('coLeads').textContent=s.leads;
+    document.getElementById('coCpl').textContent=s.cpl;
+    document.getElementById('coSpend').textContent=s.spend;
+    document.getElementById('coSize').textContent=s.size;
+    document.getElementById('coInd').textContent=s.ind;
+    document.getElementById('coApp').textContent=s.app;
+    document.getElementById('coCty').textContent=s.cty;
+    show('s4');
+  }
+  function selPay(el){document.querySelectorAll('.payopt').forEach(function(p){p.classList.remove('sel')});el.classList.add('sel');}
+</script>
+</body>
+</html>
